@@ -1,6 +1,4 @@
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
-from fastapi import status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from ..database import get_db
@@ -10,10 +8,9 @@ router = APIRouter()
 
 @router.get("/transactions")
 def list_transactions(
-    limit: int = 500,
+    limit: int = Query(500, ge=1, le=5000),
     db: Session = Depends(get_db),
 ):
-
     rows = (
         db.query(Transaction)
         .order_by(desc(Transaction.id))
@@ -30,3 +27,11 @@ def list_transactions(
         }
         for r in rows
     ]
+
+@router.delete("/transactions")
+def delete_all(db: Session = Depends(get_db)):
+    # SQLAlchemy's .delete() runs a single DELETE FROM transactions SQL statement
+    # and returns how many rows were removed.
+    n = db.query(Transaction).delete()
+    db.commit()
+    return {"deleted": n}
