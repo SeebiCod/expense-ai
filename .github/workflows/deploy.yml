@@ -1,0 +1,44 @@
+name: Deploy to EC2
+
+# Trigger: any push to the main branch.
+# Change "main" to your branch name if you use something else.
+on:
+  push:
+    branches: [main]
+  # Also allow triggering manually from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: SSH into EC2 and redeploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # `set -e` = stop on first error so a broken build fails the deploy
+          script: |
+            set -e
+            echo ">>> Pulling latest code..."
+            cd ~/expense-ai
+            git pull
+
+            echo ">>> Updating backend Python deps..."
+            source backend/.venv/bin/activate
+            pip install -r backend/requirements.txt
+
+            echo ">>> Restarting backend service..."
+            sudo systemctl restart expense-ai
+
+            echo ">>> Rebuilding frontend..."
+            cd frontend
+            npm install --no-audit --no-fund
+            VITE_API_URL=/api npm run build
+
+            echo ">>> Reloading nginx..."
+            sudo nginx -t && sudo systemctl reload nginx
+
+            echo ">>> Deployed."
