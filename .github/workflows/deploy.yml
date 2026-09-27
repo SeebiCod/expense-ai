@@ -8,9 +8,24 @@ on:
   # Also allow triggering manually from the GitHub Actions UI
   workflow_dispatch:
 
+# Least privilege for the workflow token
+permissions:
+  contents: read
+
 jobs:
+  # Run all security checks first (see security.yml).
+  # If any check fails, the deploy below does NOT run.
+  security:
+    name: Security checks
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
   deploy:
     name: SSH into EC2 and redeploy
+    needs: security
     runs-on: ubuntu-latest
     steps:
       - name: Deploy over SSH

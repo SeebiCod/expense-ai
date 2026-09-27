@@ -1,0 +1,19 @@
+# Dependabot opens weekly PRs to keep dependencies patched.
+version: 2
+updates:
+  - package-ecosystem: "npm"        # React frontend
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "pip"        # FastAPI backend
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"   # actions used in .github/workflows
+    directory: "/"
+    schedule:
+      interval: "weekly"
