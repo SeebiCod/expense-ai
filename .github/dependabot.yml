@@ -6,6 +6,13 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # Packages that must be upgraded TOGETHER go in one PR.
+    # (Upgrading vite alone broke @vitejs/plugin-react's peer dependency.)
+    groups:
+      vite:
+        patterns: ["vite", "@vitejs/*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
 
   - package-ecosystem: "pip"        # FastAPI backend
     directory: "/backend"
