@@ -57,3 +57,9 @@ jobs:
             sudo nginx -t && sudo systemctl reload nginx
 
             echo ">>> Deployed."
+
+  # After the new version is live, scan the running website with ZAP.
+  zap:
+    name: ZAP scan
+    needs: deploy
+    uses: ./.github/workflows/zap.yml

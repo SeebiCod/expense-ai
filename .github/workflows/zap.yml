@@ -1,0 +1,35 @@
+name: ZAP Scan (live site)
+
+# DAST = tests the RUNNING website, not the code.
+# Baseline scan is passive (no attack payloads), so it is safe for production.
+# Runs:
+#  - after every deploy (called from deploy.yml)
+#  - every Monday
+#  - manually from the Actions tab
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 3 * * 1" # Monday 03:30 UTC (08:30 PKT), after the security scan
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    name: ZAP baseline scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "https://haseeb-expense-ai.duckdns.org/"
+          # Report-only for now: findings don't fail the run.
+          # Change to true once the first findings are fixed.
+          fail_action: false
+          # Don't open GitHub issues; the HTML report is uploaded instead
+          allow_issue_writing: false
+          artifact_name: zap-report
+          cmd_options: "-a" # include alpha (newer) passive rules
